@@ -21,6 +21,7 @@
 - [Симулятор отчётов (Tkinter + Sheets)](#симулятор-отчётов-tkinter--sheets)
 - [Мини-CRM: база, API, GUI](#мини-crm-база-api-gui)
 - [Скрипты тестовых данных](#скрипты-тестовых-данных)
+- [Тесты](#тесты)
 - [Запуск: шпаргалка](#запуск-шпаргалка)
 - [Устранение неполадок](#устранение-неполадок)
 
@@ -70,7 +71,9 @@ flowchart TB
 | `scripts/seed_crm_db.py` | Наполнение БД тестовыми данными |
 | `scripts/clear_crm_db.py` | Полная очистка таблиц и сброс `sqlite_sequence` |
 | `.env` / `.env.example` | Секреты и ID (не коммитить `.env` с реальными ключами) |
-| `requirements.txt` | Зависимости Python |
+| `requirements.txt` | Зависимости Python (включая **pytest** и **httpx** для тестов) |
+| `pytest.ini` | Настройка **pytest** (`pythonpath`, каталог `tests/`) |
+| `tests/` | Автотесты API и модуля `crm_admin` |
 | `Dockerfile` / `docker-compose.yml` | Сборка и запуск только **API** CRM в контейнере |
 
 Весь прикладной код лежит под `src/`.
@@ -357,6 +360,23 @@ python src/ui/crm_tkinter_app.py
 
 ---
 
+## Тесты
+
+Используется **pytest**. Тесты API поднимают FastAPI **`TestClient`** и перезагружают `crm_api` с **`CRM_DB_PATH`** на временный файл SQLite (данные в `data/` не затрагиваются).
+
+```bash
+cd google_sheet_integration
+pip install -r requirements.txt   # pytest и httpx уже в списке
+pytest                            # все тесты
+pytest tests/test_managers.py -v  # один файл
+```
+
+**Что покрыто:** `GET /health`, CRUD менеджеров, клиенты и поиск, ответ **400** при нарушении FK, видимость админ-маршрутов при `CRM_ALLOW_ADMIN_ENDPOINTS`, сценарий **seed → clear** через API, модуль **`crm_admin`** (seed/clear на диске).
+
+Интеграции с **Google API** в тесты не входят (без сети и реальных ключей).
+
+---
+
 ## Запуск: шпаргалка
 
 | Задача | Команда (из корня репозитория) |
@@ -369,6 +389,7 @@ python src/ui/crm_tkinter_app.py
 | Очистить БД | `python scripts/clear_crm_db.py` |
 | Заполнить тестовыми данными | `python scripts/seed_crm_db.py` |
 | Симулятор отчётов Google | `PYTHONPATH=src/integrations python src/integrations/report_app.py` |
+| Автотесты | `pytest` |
 
 ---
 
