@@ -1,0 +1,28 @@
+# Запуск API одной командой: docker compose up --build
+#
+# Свои ключи Google: положите JSON в ./secrets и задайте пути в .env (см. .env.example).
+# БД: каталог ./data монтируется в контейнер — файл сохраняется между перезапусками.
+#
+# Очистка / тестовые данные при работающем API (включите CRM_ALLOW_ADMIN_ENDPOINTS=1 в .env):
+#   curl -X POST http://localhost:8000/admin/clear-database
+#   curl -X POST http://localhost:8000/admin/seed-test-data
+#
+# Те же операции с хоста через скрипты (тот же файл ./data/crm.sqlite3):
+#   python scripts/clear_crm_db.py
+#   python scripts/seed_crm_db.py
+
+services:
+  crm-api:
+    build: .
+    ports:
+      - "${CRM_HOST_PORT:-8000}:8000"
+    env_file:
+      - .env
+    environment:
+      # Переопределяет относительный путь из .env — внутри контейнера БД всегда здесь:
+      CRM_DB_PATH: /app/data/crm.sqlite3
+    volumes:
+      - ./data:/app/data
+      # Смонтируйте каталог с service-account.json и client_secret.json (read-only):
+      - ${CRM_SECRETS_DIR:-./secrets}:/app/secrets:ro
+    restart: unless-stopped

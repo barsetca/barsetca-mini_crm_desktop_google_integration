@@ -1,0 +1,9 @@
+.venv
+venv
+__pycache__
+*.pyc
+.git
+*.sqlite3-journal
+.pytest_cache
+.mypy_cache
+.cursor
